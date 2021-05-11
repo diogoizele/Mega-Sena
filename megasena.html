@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Mega-Sena</title>
+    <style>
+      body {
+        height: 100vh;
+
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: space-evenly;
+
+        font-family: Arial, Helvetica, sans-serif;
+        color: #907fa4;
+      }
+
+      .title {
+        font-size: 3rem;
+      }
+
+      .app {
+        width: 32.5rem;
+        height: 18.75rem;
+
+        padding: 1rem;
+        box-shadow: 0px 0px 10px 2px #b6b6b6;
+
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        align-items: center;
+      }
+
+      .squares {
+        width: 3rem;
+        height: 3rem;
+        display: inline-block;
+        border-radius: 5rem;
+
+        margin: 1px;
+        background-color: #d3d3d3;
+        transition: 0.3s;
+        opacity: 0.4;
+
+        color: black;
+        text-align: center;
+        vertical-align: middle;
+        line-height: 3rem;
+        /* font-weight: bold; */
+        font-size: 1.2rem;
+      }
+
+      .squares:hover {
+        opacity: 1;
+        cursor: pointer;
+      }
+
+      .square-chosen {
+        background-color: #a58faa;
+        opacity: 1;
+        color: white;
+      }
+
+      .result-button {
+        padding: 0.6rem 2rem;
+        font-size: 1.2rem;
+        border: none;
+        border-radius: 10rem;
+        border: 2px solid #907fa4;
+        color: white;
+        background-color: #907fa4;
+        transition: 0.4s;
+      }
+
+      .result-button:hover {
+        cursor: pointer;
+        color: #907fa4;
+        background-color: white;
+      }
+
+      .message-result {
+        height: inherit;
+        width: inherit;
+        position: relative;
+
+        display: flex;
+        flex-direction: column;
+        justify-content: space-evenly;
+        align-items: center;
+      }
+
+      .close-button {
+        padding: 0.2rem;
+        height: 1.5rem;
+        width: 1.5rem;
+        border-radius: 2rem;
+        text-align: center;
+        line-height: 1.5rem;
+        background-color: #907fa4;
+        color: white;
+        position: absolute;
+        top: -1.5rem;
+        right: -1.5rem;
+        transition: 0.3s;
+        font-weight: bold;
+      }
+
+      .close-button:hover {
+        cursor: pointer;
+        background-color: #a58faa;
+      }
+
+      .div-result {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .squares-result {
+        width: 3rem;
+        height: 3rem;
+        display: inline-block;
+        border-radius: 5rem;
+
+        margin: 1px;
+        background-color: #d3d3d3;
+        transition: 0.3s;
+
+        color: black;
+        text-align: center;
+        vertical-align: middle;
+        line-height: 3rem;
+        /* font-weight: bold; */
+        font-size: 1.2rem;
+      }
+
+      .correct {
+        background-color: #a6d6d6;
+      }
+    </style>
+  </head>
+  <body>
+    <h2 class="title">Mega-Sena</h2>
+    <section class="app"></section>
+    <button class="result-button" id="resultButton">Conferir Resultado</button>
+    <section class="result"></section>
+  </body>
+  <script>
+    const app = document.querySelector(".app");
+    const resultButton = document.getElementById("resultButton");
+    let chosen = [];
+    let drawn = [];
+    let result = false;
+    let matched = 0;
+
+    function createApp() {
+      app.innerHTML = "";
+      for (let i = 1; i <= 60; i++) {
+        const div = document.createElement("div");
+        div.classList.add("squares");
+        div.setAttribute("id", i);
+        div.addEventListener("click", selectValue);
+        div.innerHTML = i;
+        app.appendChild(div);
+      }
+    }
+
+    createApp();
+
+    function selectValue(e) {
+      const element = e.target;
+      const id = element.id;
+      // const elements = document.querySelectorAll("div");
+
+      if (element.classList.contains("square-chosen")) {
+        element.classList.remove("square-chosen");
+      } else {
+        element.classList.add("square-chosen");
+      }
+    }
+
+    function conferResult() {
+      chosen = [];
+      const elements = document.querySelectorAll(".squares");
+      let amountValues = 0;
+
+      elements.forEach((element) => {
+        if (element.classList.contains("square-chosen")) {
+          amountValues++;
+        }
+      });
+
+      if (amountValues < 6) {
+        alert("Você precisa inserir 6 valores para continuar!");
+        return;
+      } else if (amountValues > 6) {
+        alert("Você só pode inserir 6 valores para continuar!");
+        return;
+      }
+      elements.forEach((element) => {
+        if (element.classList.contains("square-chosen")) {
+          let number = element.getAttribute("id");
+          chosen.push(+number);
+        }
+      });
+
+      app.innerHTML = "";
+      generateResult();
+
+      const section = document.createElement("section");
+      section.classList.add("message-result");
+
+      const closeButton = document.createElement("div");
+      closeButton.innerHTML = "x";
+      closeButton.classList.add("close-button");
+      closeButton.addEventListener("click", () => {
+        app.innerHTML = "";
+        createApp();
+        drawn = [];
+        chosen = [];
+        matched = 0;
+      });
+
+      const h2Result = document.createElement("h2");
+      h2Result.innerHTML = "Resultado:";
+
+      const divResult = document.createElement("div");
+      divResult.classList.add("div-result");
+
+      drawn.forEach((num) => {
+        const div = document.createElement("div");
+        div.classList.add("squares-result");
+        div.innerHTML = num;
+        divResult.appendChild(div);
+        // console.log(num);
+      });
+
+      const h2Chosen = document.createElement("h2");
+      h2Chosen.innerHTML = "Escolhidos:";
+
+      const divChosen = document.createElement("div");
+      divChosen.classList.add("div-result"); // mesma classe
+
+      chosen.forEach((num) => {
+        const div = document.createElement("div");
+        div.classList.add("squares-result");
+        div.innerHTML = num;
+        divChosen.appendChild(div);
+        // console.log(num);
+      });
+
+      const percent = document.createElement("h3");
+
+      section.appendChild(h2Result);
+      section.appendChild(divResult);
+      section.appendChild(h2Chosen);
+      section.appendChild(divChosen);
+      section.appendChild(closeButton);
+
+      setTimeout(() => {
+        let squares = document.querySelectorAll(".squares-result");
+        squares.forEach((square) => {
+          drawn.forEach((number1) => {
+            chosen.forEach((number2) => {
+              if (number1 == number2 && square.innerHTML == number2) {
+                // console.log(number2);
+                matched++;
+                square.classList.add("correct");
+              }
+              percent.innerHTML = `Você ganhou ${(
+                (matched / 2 / 6) *
+                100
+              ).toFixed(2)}% do valor do prêmio!`;
+            });
+          });
+        });
+      }, 10);
+
+      result = true;
+      resultButton.innerHTML = "Voltar ao Apostador";
+      section.appendChild(percent);
+      app.appendChild(section);
+    }
+
+    function generateResult() {
+      const getRndInteger = (min, max) => {
+        return Math.floor(Math.random() * (max - min + 1)) + min;
+      };
+      while (drawn.length < 6) {
+        let number = getRndInteger(1, 60);
+        if (!drawn.includes(number)) {
+          drawn.push(number);
+        }
+      }
+      drawn = drawn.sort((a, b) => a - b);
+    }
+
+    resultButton.addEventListener("click", () => {
+      if (result) {
+        app.innerHTML = "";
+        createApp();
+        drawn = [];
+        chosen = [];
+        result = false;
+        matched = 0;
+        resultButton.innerHTML = "Conferir Resultado";
+      } else {
+        conferResult();
+      }
+    });
+  </script>
+</html>
